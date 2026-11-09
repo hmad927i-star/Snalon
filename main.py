@@ -14,12 +14,16 @@ VALID_CODES = {
     }
 }
 
-@app.route('/', methods=['POST'])  # ✅ POST فقط
+@app.route('/', methods=['POST'])
 def verify():
     global is_server_online
     
-    # 1. قراءة البيانات من JSON Body (فقط)
-    data = request.get_json()
+    # ✅ استخدام force=True لتجاوز مشاكل الترميز
+    data = request.get_json(force=True, silent=True)
+    if not data:
+        # إذا لم يتم العثور على JSON، نحاول قراءته كـ form data
+        data = request.form.to_dict()
+    
     if not data:
         return jsonify({"status": "error", "message": "Missing JSON body"}), 400
 
@@ -27,18 +31,18 @@ def verify():
     user_code = data.get('code')
     device_fingerprint = data.get('device')
 
-    # 2. التحقق من المفتاح السري
+    # التحقق من المفتاح السري
     if app_secret != "HmadApp2026Secret":
         return jsonify({"status": "error", "message": "Unauthorized"}), 403
 
-    # 3. التحقق من حالة السيرفر
+    # التحقق من حالة السيرفر
     if not is_server_online:
         return jsonify({"status": "error", "message": "Server Offline"}), 503
 
     if not user_code:
         return jsonify({"status": "error", "message": "Missing code"}), 400
 
-    # 4. التحقق من الكود
+    # التحقق من الكود
     if user_code in VALID_CODES:
         license_data = VALID_CODES[user_code]
 
