@@ -20,8 +20,8 @@ VALID_CODES = {
 def verify():
     global is_server_online
     
-    # 1. التحقق من المفتاح السري أولاً (لأنه الأهم)
-    app_secret = request.headers.get("X-App-Key")
+    # 1. قراءة المفتاح السري من الرابط (وليس من الهيدر)
+    app_secret = request.args.get('secret')
     if app_secret != "HmadApp2026Secret":
         return jsonify({"status": "error", "message": "Unauthorized"}), 403
 
@@ -29,7 +29,7 @@ def verify():
     if not is_server_online:
         return jsonify({"status": "error", "message": "Server Offline"}), 503
 
-    # 3. قراءة الكود والبصمة من الرابط
+    # 3. قراءة الكود والبصمة
     user_code = request.args.get('code')
     device_fingerprint = request.args.get('device')
 
@@ -40,20 +40,16 @@ def verify():
     if user_code in VALID_CODES:
         license_data = VALID_CODES[user_code]
 
-        # التحقق من الحظر
         if license_data["banned"]:
             return jsonify({"status": "error", "message": "Banned"}), 403
 
-        # التحقق من تاريخ الانتهاء
         expiry_date = datetime.datetime.strptime(license_data["expiry"], "%Y-%m-%d").date()
         if expiry_date < datetime.date.today():
             return jsonify({"status": "error", "message": "Expired"}), 403
 
-        # التحقق من البصمة
         if license_data["device"] and license_data["device"] != device_fingerprint:
             return jsonify({"status": "error", "message": "Device Mismatch"}), 403
 
-        # تسجيل البصمة إذا كانت أول مرة
         if not license_data["device"]:
             license_data["device"] = device_fingerprint
 
