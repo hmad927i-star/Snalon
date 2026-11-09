@@ -20,14 +20,14 @@ VALID_CODES = {
 def verify():
     global is_server_online
     
-    # 1. التحقق من حالة السيرفر
-    if not is_server_online:
-        return jsonify({"status": "error", "message": "Server Offline"}), 503
-
-    # 2. التحقق من المفتاح السري
+    # 1. التحقق من المفتاح السري أولاً (لأنه الأهم)
     app_secret = request.headers.get("X-App-Key")
     if app_secret != "HmadApp2026Secret":
         return jsonify({"status": "error", "message": "Unauthorized"}), 403
+
+    # 2. التحقق من حالة السيرفر
+    if not is_server_online:
+        return jsonify({"status": "error", "message": "Server Offline"}), 503
 
     # 3. قراءة الكود والبصمة من الرابط
     user_code = request.args.get('code')
