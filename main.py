@@ -14,28 +14,18 @@ VALID_CODES = {
     }
 }
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/', methods=['POST'])  # ✅ POST فقط
 def verify():
     global is_server_online
     
-    # 1. قراءة البيانات (من الرابط أو من الـ Body)
-    if request.method == 'POST':
-        # إذا كان POST، نقرأ من JSON
-        data = request.get_json()
-        if data:
-            app_secret = data.get('secret')
-            user_code = data.get('code')
-            device_fingerprint = data.get('device')
-        else:
-            # إذا لم يكن JSON، نقرأ من form data
-            app_secret = request.form.get('secret')
-            user_code = request.form.get('code')
-            device_fingerprint = request.form.get('device')
-    else:
-        # إذا كان GET، نقرأ من الرابط
-        app_secret = request.args.get('secret')
-        user_code = request.args.get('code')
-        device_fingerprint = request.args.get('device')
+    # 1. قراءة البيانات من JSON Body (فقط)
+    data = request.get_json()
+    if not data:
+        return jsonify({"status": "error", "message": "Missing JSON body"}), 400
+
+    app_secret = data.get('secret')
+    user_code = data.get('code')
+    device_fingerprint = data.get('device')
 
     # 2. التحقق من المفتاح السري
     if app_secret != "HmadApp2026Secret":
