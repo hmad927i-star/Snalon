@@ -3,10 +3,8 @@ import datetime
 
 app = Flask(__name__)
 
-# مفتاح التحكم بالسيرفر (true = شغال، false = طافي)
 is_server_online = True
 
-# كود التحقق (مؤقتاً، يمكنك ربطه بقاعدة بيانات لاحقاً)
 VALID_CODES = {
     "VIP-12345": {
         "user": "Hmad",
@@ -16,22 +14,36 @@ VALID_CODES = {
     }
 }
 
-@app.route('/', methods=['GET'])
+@app.route('/', methods=['GET', 'POST'])
 def verify():
     global is_server_online
     
-    # 1. قراءة المفتاح السري من الرابط (وليس من الهيدر)
-    app_secret = request.args.get('secret')
+    # 1. قراءة البيانات (من الرابط أو من الـ Body)
+    if request.method == 'POST':
+        # إذا كان POST، نقرأ من JSON
+        data = request.get_json()
+        if data:
+            app_secret = data.get('secret')
+            user_code = data.get('code')
+            device_fingerprint = data.get('device')
+        else:
+            # إذا لم يكن JSON، نقرأ من form data
+            app_secret = request.form.get('secret')
+            user_code = request.form.get('code')
+            device_fingerprint = request.form.get('device')
+    else:
+        # إذا كان GET، نقرأ من الرابط
+        app_secret = request.args.get('secret')
+        user_code = request.args.get('code')
+        device_fingerprint = request.args.get('device')
+
+    # 2. التحقق من المفتاح السري
     if app_secret != "HmadApp2026Secret":
         return jsonify({"status": "error", "message": "Unauthorized"}), 403
 
-    # 2. التحقق من حالة السيرفر
+    # 3. التحقق من حالة السيرفر
     if not is_server_online:
         return jsonify({"status": "error", "message": "Server Offline"}), 503
-
-    # 3. قراءة الكود والبصمة
-    user_code = request.args.get('code')
-    device_fingerprint = request.args.get('device')
 
     if not user_code:
         return jsonify({"status": "error", "message": "Missing code"}), 400
