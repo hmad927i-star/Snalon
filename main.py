@@ -4,7 +4,7 @@ import datetime
 app = Flask(__name__)
 
 # مفتاح التحكم بالسيرفر (true = شغال، false = طافي)
-is_server_online = False
+is_server_online = True
 
 # كود التحقق (مؤقتاً، يمكنك ربطه بقاعدة بيانات لاحقاً)
 VALID_CODES = {
