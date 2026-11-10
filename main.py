@@ -3,7 +3,7 @@ import datetime
 
 app = Flask(__name__)
 
-is_server_online = True
+is_server_online = False
 
 VALID_CODES = {
     "VIP-12345": {
